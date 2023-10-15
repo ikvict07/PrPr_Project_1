@@ -106,8 +106,39 @@ void sort(char ***p_dates_to_show, char ***p_times_to_show, float **p_values_to_
         }
     }
 }
-
-
+void delete_element(char* id_to_delete, int *p_num_of_records, char ***p_ids, char ***p_positions, char ***p_types,
+                    float **p_values, char ***p_times, char ***p_dates) {
+    int removedElements = 0;
+    for (int i = 0; i < *p_num_of_records; ++i) {
+        if ((strcmp(id_to_delete, (*p_ids)[i]) == 0)) {
+            free((*p_ids)[i]);
+            free((*p_positions)[i]);
+            free((*p_types)[i]);
+            free((*p_times)[i]);
+            free((*p_dates)[i]);
+            for (int j = i; j < *p_num_of_records; ++j) {
+                (*p_ids)[j] = (*p_ids)[j + 1];
+                (*p_positions)[j] = (*p_positions)[j + 1];
+                (*p_types)[j] = (*p_types)[j + 1];
+                (*p_values)[j] = (*p_values)[j + 1];
+                (*p_times)[j] = (*p_times)[j + 1];
+                (*p_dates)[j] = (*p_dates)[j + 1];
+            }
+            --i;
+            ++removedElements;
+        }
+    }
+    if (removedElements > 0) {
+        *p_num_of_records -= removedElements;
+        *p_ids = realloc(*p_ids, sizeof(char*) * (*p_num_of_records));
+        *p_positions = realloc(*p_positions, sizeof(char*) * (*p_num_of_records));
+        *p_types = realloc(*p_types, sizeof(char*) * (*p_num_of_records));
+        *p_values = realloc(*p_values, sizeof(float) * (*p_num_of_records));
+        *p_times = realloc(*p_times, sizeof(char*) * (*p_num_of_records));
+        *p_dates = realloc(*p_dates, sizeof(char*) * (*p_num_of_records));
+    }
+    printf("Vymazalo sa: %d zaznamov!\n", removedElements);
+}
 void case_v(FILE **p_main_file, const int num_of_records, char **ids, char **positions, char **types,
             float *values, char **times, char **dates) {
     if (*p_main_file == NULL) {
@@ -228,6 +259,10 @@ void case_c(int num_of_records, char **ids, char **dates) {
 }
 
 void case_s(int num_of_records, char **ids, char **types, char **dates, char **times, float *values, char **positions) {
+    if (num_of_records == 0) {
+        printf("Polia nie su vytvorene\n");
+        return;
+    }
     char id_to_show[5 + 1];
     char type_to_show[2 + 1];
     printf("Napiste mer. modul a typ:\n");
@@ -315,12 +350,117 @@ void case_s(int num_of_records, char **ids, char **types, char **dates, char **t
     rewind(output_file);
 }
 
-void case_h() {
+void case_h(int num_of_records, char **types, float *values) {
+    if (num_of_records == 0) {
+        printf("Polia nie su vytvorene\n");
+        return;
+    }
+    //{RD, RM, RO, PI, PE, PA}
+    int RD_n = 0, RM_n = 0, RO_n = 0, PI_n = 0, PE_n = 0, PA_n = 0;
+    float RD_max, RM_max, RO_max, PI_max, PE_max, PA_max;
+    float RD_min, RM_min, RO_min, PI_min, PE_min, PA_min;
+    for (int i = 0; i < num_of_records; ++i) {
+        char *current_type = types[i];
+        if (strcmp(current_type, "RD") == 0) {
+            RD_n += 1;
+            if (RD_n == 1) {
+                RD_max = values[i];
+                RD_min = values[i];
+            } else {
+                RD_max = values[i] > RD_max ? values[i] : RD_max;
+                RD_min = values[i] < RD_min ? values[i] : RD_min;
+            }
+        }
+        if (strcmp(current_type, "RM") == 0) {
+            RM_n += 1;
+            if (RM_n == 1) {
+                RM_max = values[i];
+                RM_min = values[i];
+            } else {
+                RM_max = values[i] > RM_max ? values[i] : RM_max;
+                RM_min = values[i] < RM_min ? values[i] : RM_min;
+            }
+        }
+        if (strcmp(current_type, "RO") == 0) {
+            RO_n += 1;
+            if (RO_n == 1) {
+                RO_max = values[i];
+                RO_min = values[i];
+            } else {
+                RO_max = values[i] > RO_max ? values[i] : RO_max;
+                RO_min = values[i] < RO_min ? values[i] : RO_min;
+            }
+        }
 
+        if (strcmp(current_type, "PI") == 0) {
+            PI_n += 1;
+            if (PI_n == 1) {
+                PI_max = values[i];
+                PI_min = values[i];
+            } else {
+                PI_max = values[i] > PI_max ? values[i] : PI_max;
+                PI_min = values[i] < PI_min ? values[i] : PI_min;
+            }
+        }
+
+        if (strcmp(current_type, "PE") == 0) {
+            PE_n += 1;
+            if (PE_n == 1) {
+                PE_max = values[i];
+                PE_min = values[i];
+            } else {
+                PE_max = values[i] > PE_max ? values[i] : PE_max;
+                PE_min = values[i] < PE_min ? values[i] : PE_min;
+            }
+        }
+        if (strcmp(current_type, "PA") == 0) {
+            PA_n += 1;
+            if (PA_n == 1) {
+                PA_max = values[i];
+                PA_min = values[i];
+            } else {
+                PA_max = values[i] > PA_max ? values[i] : PA_max;
+                PA_min = values[i] < PA_min ? values[i] : PA_min;
+            }
+        }
+    }
+    if (RD_n + RM_n + RO_n + PI_n + PE_n + PA_n == 0) {
+        return;
+    }
+    printf("Typ mer. vel.\tPocetnost\tMinimum\tMaximum\n");
+    if (RD_n > 0) {
+        printf("    %-16s%-12d%-8.2f%-8.2f\n", "RD", RD_n, RD_min, RD_max);
+    }
+    if (RM_n > 0) {
+        printf("    %-16s%-12d%-8.2f%-8.2f\n", "RM", RM_n, RM_min, RM_max);
+    }
+    if (RO_n > 0) {
+        printf("    %-16s%-12d%-8.2f%-8.2f\n", "RO", RO_n, RO_min, RO_max);
+    }
+    if (PI_n > 0) {
+        printf("    %-16s%-12d%-8.2f%-8.2f\n", "PI", PI_n, PI_min, PI_max);
+    }
+    if (PE_n > 0) {
+        printf("    %-16s%-12d%-8.2f%-8.2f\n", "PE", PE_n, PE_min, PE_max);
+    }
+    if (PA_n > 0) {
+        printf("    %-16s%-12d%-8.2f%-8.2f\n", "PA", PA_n, PA_min, PA_max);
+    }
 }
 
-void case_z() {
+void case_z(int *p_num_of_records, char ***p_ids, char ***p_positions, char ***p_types,
+            float **p_values, char ***p_times, char ***p_dates) {
+    if (*p_num_of_records == 0) {
+        printf("Polia nie su vytvorene\n");
+        return;
+    }
+    char id_to_delete[5 + 1];
+    printf("Id: ");
+    scanf("%s", id_to_delete);
+    printf("\n");
 
+    delete_element(id_to_delete, p_num_of_records, p_ids, p_positions, p_types,
+                   p_values, p_times, p_dates);
 }
 
 int main() {
@@ -366,13 +506,36 @@ int main() {
                 case_s(num_of_records, ids, types, dates, times, values, positions);
                 break;
             case 'h':
-                case_h();
+                case_h(num_of_records, types, values);
                 break;
             case 'z':
-                case_z();
+                case_z(p_num_of_records, p_ids, p_positions, p_types, p_values, p_times, p_dates);
+                ids = *p_ids;
+                positions = *p_positions;
+                types = *p_types;
+                values = *p_values;
+                times = *p_times;
+                dates = *p_dates;
                 break;
             case 'k':
-                break;
+                fclose(main_file);
+                if (*p_num_of_records != 0) {
+                    for (int i = 0; i < *p_num_of_records; ++i) {
+                        free((*p_ids)[i]);
+                        free((*p_positions)[i]);
+                        free((*p_types)[i]);
+                        free((*p_times)[i]);
+                        free((*p_dates)[i]);
+                    }
+                    free(*p_ids);
+                    free(*p_positions);
+                    free(*p_types);
+                    free(*p_values);
+                    free(*p_times);
+                    free(*p_dates);
+                    *p_num_of_records = 0;
+                }
+                return 0;
             default:
                 continue;
         }
