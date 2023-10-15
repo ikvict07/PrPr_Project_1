@@ -65,13 +65,48 @@ int date_difference(char *date1, char *date2) {
     return diff;
 }
 
-/**
- * @brief Takes pointer to FILE* and change FILE*, should reassign the value after function call
- *
- * @param A pointer to the FILE* object to be operated on.
- *
- * @return void
- */
+int compare(char *date1, char *time1, char *date2, char *time2) {
+    int dateA, dateB;
+    sscanf(date1, "%d", &dateA);
+    sscanf(date2, "%d", &dateB);
+    int diff = dateA - dateB;
+    if (diff == 0) {
+        int timeA, timeB;
+        sscanf(time1, "%d", &timeA);
+        sscanf(time2, "%d", &timeB);
+        diff = timeA - timeB;
+    }
+    return diff; // IF date1 is bigger => returns positive number
+}
+
+void sort(char ***p_dates_to_show, char ***p_times_to_show, float **p_values_to_show, char ***p_positions_to_show,
+          int array_len) {
+    for (int i = 0; i < array_len; ++i) {
+        for (int j = 0; j < array_len - i - 1; ++j) {
+            if (compare((*p_dates_to_show)[j], (*p_times_to_show)[j], (*p_dates_to_show)[j + 1],
+                        (*p_times_to_show)[j + 1]) > 0) {
+                char *temp_date = (*p_dates_to_show)[j];
+                char *temp_time = (*p_times_to_show)[j];
+                float temp_value = (*p_values_to_show)[j];
+                char *temp_position = (*p_positions_to_show)[j];
+
+                (*p_dates_to_show)[j] = (*p_dates_to_show)[j + 1];
+                (*p_dates_to_show)[j + 1] = temp_date;
+
+                (*p_times_to_show)[j] = (*p_times_to_show)[j + 1];
+                (*p_times_to_show)[j + 1] = temp_time;
+
+                (*p_values_to_show)[j] = (*p_values_to_show)[j + 1];
+                (*p_values_to_show)[j + 1] = temp_value;
+
+                (*p_positions_to_show)[j] = (*p_positions_to_show)[j + 1];
+                (*p_positions_to_show)[j + 1] = temp_position;
+
+            }
+        }
+    }
+}
+
 
 void case_v(FILE **p_main_file, const int num_of_records, char **ids, char **positions, char **types,
             float *values, char **times, char **dates) {
@@ -108,9 +143,8 @@ void case_v(FILE **p_main_file, const int num_of_records, char **ids, char **pos
     }
 }
 
-void
-case_n(FILE *main_file, int *p_num_of_records, char ***p_ids, char ***p_positions, char ***p_types, float **p_values,
-       char ***p_times, char ***p_dates) {
+void case_n(FILE *main_file, int *p_num_of_records, char ***p_ids, char ***p_positions, char ***p_types,
+            float **p_values, char ***p_times, char ***p_dates) {
     if (main_file == NULL) {
         printf("Neotvoreny subor\n");
         return;
@@ -193,8 +227,92 @@ void case_c(int num_of_records, char **ids, char **dates) {
     }
 }
 
-void case_s() {
+void case_s(int num_of_records, char **ids, char **types, char **dates, char **times, float *values, char **positions) {
+    char id_to_show[5 + 1];
+    char type_to_show[2 + 1];
+    printf("Napiste mer. modul a typ:\n");
+    scanf("%s %s", id_to_show, type_to_show);
+    printf("\n");
 
+    char **dates_to_show;
+    char **times_to_show;
+    float *values_to_show;
+    char **positions_to_show;
+
+    char ***p_dates_to_show = &dates_to_show;
+    char ***p_times_to_show = &times_to_show;
+    float **p_values_to_show = &values_to_show;
+    char ***p_positions_to_show = &positions_to_show;
+
+    int new_arrays_len = 0;
+
+    for (int i = 0; i < num_of_records; ++i) {
+        if ((strcmp(ids[i], id_to_show) == 0) && (strcmp(types[i], type_to_show) == 0)) {
+            add_element(p_dates_to_show, dates[i], new_arrays_len, 9);
+            add_element(p_times_to_show, times[i], new_arrays_len, 5);
+            add_element_float(p_values_to_show, values[i], new_arrays_len);
+            add_element(p_positions_to_show, positions[i], new_arrays_len, 15);
+            dates_to_show = *p_dates_to_show;
+            times_to_show = *p_times_to_show;
+            values_to_show = *p_values_to_show;
+            positions_to_show = *p_positions_to_show;
+            new_arrays_len += 1;
+        }
+    }
+
+    if (new_arrays_len == 0) {
+        printf("Pre dany vstup neexistuju zaznamy\n");
+        return;
+    }
+    sort(p_dates_to_show, p_times_to_show, p_values_to_show, p_positions_to_show, new_arrays_len);
+
+    FILE *output_file = fopen("vystup_S.txt.", "w");
+    if (output_file == NULL) {
+        printf("Pre dany vstup nie je vytvoreny txt subor\n");
+        for (int i = 0; i < new_arrays_len; ++i) {
+            free((*p_positions_to_show)[i]);
+            free((*p_times_to_show)[i]);
+            free((*p_dates_to_show)[i]);
+        }
+        free(*p_positions_to_show);
+        free(*p_values_to_show);
+        free(*p_times_to_show);
+        free(*p_dates_to_show);
+        return;
+    }
+    for (int i = 0; i < new_arrays_len; ++i) {
+        char *temp_pos = (positions_to_show)[i];
+        char op1, op2;
+        int lat1, lat2, lon1, lon2;
+        sscanf(temp_pos, "%c%2d%4d%c%2d%4d", &op1, &lat1, &lat2, &op2, &lon1, &lon2);
+        fprintf(output_file, "%s%s\t%.5f\t%c%d.%d\t%c%d.%d\n",
+                (dates_to_show)[i], (times_to_show)[i], (values_to_show)[i], op1, lat1, lat2, op2, lon1, lon2);
+    }
+    if (fclose(output_file) != 0) {
+        printf("Pre dany vstup nie je vytvoreny txt subor\n");
+        for (int i = 0; i < new_arrays_len; ++i) {
+            free((*p_positions_to_show)[i]);
+            free((*p_times_to_show)[i]);
+            free((*p_dates_to_show)[i]);
+        }
+        free(*p_positions_to_show);
+        free(*p_values_to_show);
+        free(*p_times_to_show);
+        free(*p_dates_to_show);
+
+        return;
+    }
+    for (int i = 0; i < new_arrays_len; ++i) {
+        free((*p_positions_to_show)[i]);
+        free((*p_times_to_show)[i]);
+        free((*p_dates_to_show)[i]);
+    }
+    free(*p_positions_to_show);
+    free(*p_values_to_show);
+    free(*p_times_to_show);
+    free(*p_dates_to_show);
+    printf("Pre dany vstup je vytvoreny txt subor\n");
+    rewind(output_file);
 }
 
 void case_h() {
@@ -245,7 +363,7 @@ int main() {
                 case_c(num_of_records, ids, dates);
                 break;
             case 's':
-                case_s();
+                case_s(num_of_records, ids, types, dates, times, values, positions);
                 break;
             case 'h':
                 case_h();
