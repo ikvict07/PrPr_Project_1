@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void add_element(char ***array, const char *element, int num_of_records, const int len_of_element) {
     if (num_of_records == 0) {
@@ -27,7 +28,7 @@ void add_element(char ***array, const char *element, int num_of_records, const i
 
 void add_element_float(float **array, float element, int num_of_records) {
     if (num_of_records == 0) {
-        *array = malloc( sizeof(float));
+        *array = malloc(sizeof(float));
 
     } else {
 
@@ -48,6 +49,20 @@ void print_record(char *id, char *position, char *type, float value, char *time,
     printf("Hodnota: %.2f\n", value);
     printf("Cas merania: %s\n", time);
     printf("Datum merania: %s\n\n", date);
+}
+
+int date_difference(char *date1, char *date2) {
+    int year, month, day;
+    sscanf(date1, "%4d%2d%2d", &year, &month, &day);
+    int total_months1 = year * 12 + month;
+    sscanf(date2, "%4d%2d%2d", &year, &month, &day);
+    int total_months2 = year * 12 + month;
+    int diff = total_months1 - total_months2;
+
+    if (diff < 0) {
+        return -diff;
+    }
+    return diff;
 }
 
 /**
@@ -114,6 +129,7 @@ case_n(FILE *main_file, int *p_num_of_records, char ***p_ids, char ***p_position
         free(*p_values);
         free(*p_times);
         free(*p_dates);
+        *p_num_of_records = 0;
     }
     rewind(main_file);
     char temp_id[5 + 1];
@@ -139,8 +155,42 @@ case_n(FILE *main_file, int *p_num_of_records, char ***p_ids, char ***p_position
     }
 }
 
-void case_c() {
+void case_c(int num_of_records, char **ids, char **dates) {
+    if (num_of_records == 0) {
+        printf("Polia nie su vytvorene\n");
+        return;
+    }
 
+    int month_n;
+    printf("Napiste pocet mesiacov: ");
+    scanf_s("%d", &month_n);
+    printf("\n");
+
+    FILE *calibration_file;
+    calibration_file = fopen("ciachovania.txt", "r");
+    if (calibration_file == NULL) {
+        printf("Neotvoreny subor ciachovania.txt\n");
+        return;
+    }
+
+    char temp_id[5 + 1];
+    char temp_date[8 + 1];
+    for (int i = 0; i < num_of_records; ++i) {
+        int found = 0;
+        while (fscanf(calibration_file, "%s\n%s\n", temp_id, temp_date) == 2) {
+            if (strcmp(ids[i], temp_id) == 0) {
+                found = 1;
+                int diff = date_difference(dates[i], temp_date);
+                if (diff > month_n) {
+                    printf("%s ma %d mesiacov od ciachovania\n", ids[i], diff);
+                }
+            }
+        }
+        if (found == 0) {
+            printf("ID %s nie je ciachovany\n", ids[i]);
+        }
+        rewind(calibration_file);
+    }
 }
 
 void case_s() {
@@ -192,7 +242,7 @@ int main() {
                 dates = *p_dates;
                 break;
             case 'c':
-                case_c();
+                case_c(num_of_records, ids, dates);
                 break;
             case 's':
                 case_s();
