@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-int is_strings_equal(const char *s1, const char *s2) {
+int is_str_equals(const char *s1, const char *s2) {
     while(*s1 && *s2 && (*s1 == *s2))
     {
         s1++;
@@ -121,13 +121,13 @@ void delete_elements_from_all_arrays(char *id_to_delete, int *p_num_of_records, 
                                      float **p_values, char ***p_times, char ***p_dates) {
     int removedElements = 0;
     for (int i = 0; i < *p_num_of_records; ++i) {
-        if ((is_strings_equal(id_to_delete, (*p_ids)[i]) == 0)) {
+        if ((is_str_equals(id_to_delete, (*p_ids)[i]) == 0)) {
             free((*p_ids)[i]);
             free((*p_positions)[i]);
             free((*p_types)[i]);
             free((*p_times)[i]);
             free((*p_dates)[i]);
-            for (int j = i; j < *p_num_of_records; ++j) {
+            for (int j = i; j < (*p_num_of_records); ++j) {
                 if (i == *p_num_of_records) {
                     break;
                 }
@@ -258,7 +258,7 @@ void case_c(int num_of_records, char **ids, char **dates) {
     for (int i = 0; i < num_of_records; ++i) {
         int found = 0;
         while (fscanf(calibration_file, "%s\n%s\n", temp_id, temp_date) == 2) {
-            if (is_strings_equal(ids[i], temp_id) == 0) {
+            if (is_str_equals(ids[i], temp_id) == 0) {
                 found = 1;
                 int diff = date_difference(dates[i], temp_date);
                 if (diff > month_n) {
@@ -297,7 +297,7 @@ void case_s(int num_of_records, char **ids, char **types, char **dates, char **t
     int new_arrays_len = 0;
 
     for (int i = 0; i < num_of_records; ++i) {
-        if ((is_strings_equal(ids[i], id_to_show) == 0) && (is_strings_equal(types[i], type_to_show) == 0)) {
+        if ((is_str_equals(ids[i], id_to_show) == 0) && (is_str_equals(types[i], type_to_show) == 0)) {
             add_element(p_dates_to_show, dates[i], new_arrays_len, 9);
             add_element(p_times_to_show, times[i], new_arrays_len, 5);
             add_element_float(p_values_to_show, values[i], new_arrays_len);
@@ -378,7 +378,7 @@ void case_h(int num_of_records, char **types, const float *values) {
 
     for (int i = 0; i < num_of_records; ++i) {
         for(int j=0; j < 6; j++) {
-            if (is_strings_equal(types[i], type_codes[j]) == 0) {
+            if (is_str_equals(types[i], type_codes[j]) == 0) {
                 counts[j] += 1;
                 if (counts[j] == 1) {
                     maxs[j] = values[i];
