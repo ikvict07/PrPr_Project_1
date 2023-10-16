@@ -1,6 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+int is_strings_equal(const char *s1, const char *s2) {
+    while(*s1 && *s2 && (*s1 == *s2))
+    {
+        s1++;
+        s2++;
+    }
+    if (*s1 == '\0' && *s2 == '\0') {
+        return 0;
+    }
+    return 1;
+}
 
 void add_element(char ***array, const char *element, int num_of_records, const int len_of_element) {
     if (num_of_records == 0) {
@@ -111,13 +121,16 @@ void delete_elements_from_all_arrays(char *id_to_delete, int *p_num_of_records, 
                                      float **p_values, char ***p_times, char ***p_dates) {
     int removedElements = 0;
     for (int i = 0; i < *p_num_of_records; ++i) {
-        if ((strcmp(id_to_delete, (*p_ids)[i]) == 0)) {
+        if ((is_strings_equal(id_to_delete, (*p_ids)[i]) == 0)) {
             free((*p_ids)[i]);
             free((*p_positions)[i]);
             free((*p_types)[i]);
             free((*p_times)[i]);
             free((*p_dates)[i]);
             for (int j = i; j < *p_num_of_records; ++j) {
+                if (i == *p_num_of_records) {
+                    break;
+                }
                 (*p_ids)[j] = (*p_ids)[j + 1];
                 (*p_positions)[j] = (*p_positions)[j + 1];
                 (*p_types)[j] = (*p_types)[j + 1];
@@ -245,7 +258,7 @@ void case_c(int num_of_records, char **ids, char **dates) {
     for (int i = 0; i < num_of_records; ++i) {
         int found = 0;
         while (fscanf(calibration_file, "%s\n%s\n", temp_id, temp_date) == 2) {
-            if (strcmp(ids[i], temp_id) == 0) {
+            if (is_strings_equal(ids[i], temp_id) == 0) {
                 found = 1;
                 int diff = date_difference(dates[i], temp_date);
                 if (diff > month_n) {
@@ -284,7 +297,7 @@ void case_s(int num_of_records, char **ids, char **types, char **dates, char **t
     int new_arrays_len = 0;
 
     for (int i = 0; i < num_of_records; ++i) {
-        if ((strcmp(ids[i], id_to_show) == 0) && (strcmp(types[i], type_to_show) == 0)) {
+        if ((is_strings_equal(ids[i], id_to_show) == 0) && (is_strings_equal(types[i], type_to_show) == 0)) {
             add_element(p_dates_to_show, dates[i], new_arrays_len, 9);
             add_element(p_times_to_show, times[i], new_arrays_len, 5);
             add_element_float(p_values_to_show, values[i], new_arrays_len);
@@ -357,96 +370,37 @@ void case_h(int num_of_records, char **types, const float *values) {
         printf("Polia nie su vytvorene\n");
         return;
     }
-    //{RD, RM, RO, PI, PE, PA}
-    int RD_n = 0, RM_n = 0, RO_n = 0, PI_n = 0, PE_n = 0, PA_n = 0;
-    float RD_max, RM_max, RO_max, PI_max, PE_max, PA_max;
-    float RD_min, RM_min, RO_min, PI_min, PE_min, PA_min;
+
+
+    const char* type_codes[] = {"RD", "RM", "RO", "PI", "PE", "PA"};
+    int counts[6] = {0};
+    float mins[6], maxs[6];
+
     for (int i = 0; i < num_of_records; ++i) {
-        char *current_type = types[i];
-        if (strcmp(current_type, "RD") == 0) {
-            RD_n += 1;
-            if (RD_n == 1) {
-                RD_max = values[i];
-                RD_min = values[i];
-            } else {
-                RD_max = values[i] > RD_max ? values[i] : RD_max;
-                RD_min = values[i] < RD_min ? values[i] : RD_min;
-            }
-        }
-        if (strcmp(current_type, "RM") == 0) {
-            RM_n += 1;
-            if (RM_n == 1) {
-                RM_max = values[i];
-                RM_min = values[i];
-            } else {
-                RM_max = values[i] > RM_max ? values[i] : RM_max;
-                RM_min = values[i] < RM_min ? values[i] : RM_min;
-            }
-        }
-        if (strcmp(current_type, "RO") == 0) {
-            RO_n += 1;
-            if (RO_n == 1) {
-                RO_max = values[i];
-                RO_min = values[i];
-            } else {
-                RO_max = values[i] > RO_max ? values[i] : RO_max;
-                RO_min = values[i] < RO_min ? values[i] : RO_min;
-            }
-        }
-
-        if (strcmp(current_type, "PI") == 0) {
-            PI_n += 1;
-            if (PI_n == 1) {
-                PI_max = values[i];
-                PI_min = values[i];
-            } else {
-                PI_max = values[i] > PI_max ? values[i] : PI_max;
-                PI_min = values[i] < PI_min ? values[i] : PI_min;
-            }
-        }
-
-        if (strcmp(current_type, "PE") == 0) {
-            PE_n += 1;
-            if (PE_n == 1) {
-                PE_max = values[i];
-                PE_min = values[i];
-            } else {
-                PE_max = values[i] > PE_max ? values[i] : PE_max;
-                PE_min = values[i] < PE_min ? values[i] : PE_min;
-            }
-        }
-        if (strcmp(current_type, "PA") == 0) {
-            PA_n += 1;
-            if (PA_n == 1) {
-                PA_max = values[i];
-                PA_min = values[i];
-            } else {
-                PA_max = values[i] > PA_max ? values[i] : PA_max;
-                PA_min = values[i] < PA_min ? values[i] : PA_min;
+        for(int j=0; j < 6; j++) {
+            if (is_strings_equal(types[i], type_codes[j]) == 0) {
+                counts[j] += 1;
+                if (counts[j] == 1) {
+                    maxs[j] = values[i];
+                    mins[j] = values[i];
+                } else {
+                    maxs[j] = values[i] > maxs[j] ? values[i] : maxs[j];
+                    mins[j] = values[i] < mins[j] ? values[i] : mins[j];
+                }
+                break;
             }
         }
     }
-    if (RD_n + RM_n + RO_n + PI_n + PE_n + PA_n == 0) {
+
+    if (counts[0] + counts[1] + counts[2] + counts[3] + counts[4] + counts[5] == 0) {
         return;
     }
+
     printf("Typ mer. vel.\tPocetnost\tMinimum\tMaximum\n");
-    if (RD_n > 0) {
-        printf("    %-16s%-12d%-8.2f%-8.2f\n", "RD", RD_n, RD_min, RD_max);
-    }
-    if (RM_n > 0) {
-        printf("    %-16s%-12d%-8.2f%-8.2f\n", "RM", RM_n, RM_min, RM_max);
-    }
-    if (RO_n > 0) {
-        printf("    %-16s%-12d%-8.2f%-8.2f\n", "RO", RO_n, RO_min, RO_max);
-    }
-    if (PI_n > 0) {
-        printf("    %-16s%-12d%-8.2f%-8.2f\n", "PI", PI_n, PI_min, PI_max);
-    }
-    if (PE_n > 0) {
-        printf("    %-16s%-12d%-8.2f%-8.2f\n", "PE", PE_n, PE_min, PE_max);
-    }
-    if (PA_n > 0) {
-        printf("    %-16s%-12d%-8.2f%-8.2f\n", "PA", PA_n, PA_min, PA_max);
+    for(int j=0; j < 6; j++) {
+        if(counts[j] > 0) {
+            printf("    %-16s%-12d%-8.2f%-8.2f\n", type_codes[j], counts[j], mins[j], maxs[j]);
+        }
     }
 }
 
