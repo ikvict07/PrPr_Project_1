@@ -106,7 +106,8 @@ void sort(char ***p_dates_to_show, char ***p_times_to_show, float **p_values_to_
         }
     }
 }
-void delete_element(char* id_to_delete, int *p_num_of_records, char ***p_ids, char ***p_positions, char ***p_types,
+
+void delete_element(char *id_to_delete, int *p_num_of_records, char ***p_ids, char ***p_positions, char ***p_types,
                     float **p_values, char ***p_times, char ***p_dates) {
     int removedElements = 0;
     for (int i = 0; i < *p_num_of_records; ++i) {
@@ -130,15 +131,16 @@ void delete_element(char* id_to_delete, int *p_num_of_records, char ***p_ids, ch
     }
     if (removedElements > 0) {
         *p_num_of_records -= removedElements;
-        *p_ids = realloc(*p_ids, sizeof(char*) * (*p_num_of_records));
-        *p_positions = realloc(*p_positions, sizeof(char*) * (*p_num_of_records));
-        *p_types = realloc(*p_types, sizeof(char*) * (*p_num_of_records));
+        *p_ids = realloc(*p_ids, sizeof(char *) * (*p_num_of_records));
+        *p_positions = realloc(*p_positions, sizeof(char *) * (*p_num_of_records));
+        *p_types = realloc(*p_types, sizeof(char *) * (*p_num_of_records));
         *p_values = realloc(*p_values, sizeof(float) * (*p_num_of_records));
-        *p_times = realloc(*p_times, sizeof(char*) * (*p_num_of_records));
-        *p_dates = realloc(*p_dates, sizeof(char*) * (*p_num_of_records));
+        *p_times = realloc(*p_times, sizeof(char *) * (*p_num_of_records));
+        *p_dates = realloc(*p_dates, sizeof(char *) * (*p_num_of_records));
     }
     printf("Vymazalo sa: %d zaznamov!\n", removedElements);
 }
+
 void case_v(FILE **p_main_file, const int num_of_records, char **ids, char **positions, char **types,
             float *values, char **times, char **dates) {
     if (*p_main_file == NULL) {
@@ -350,7 +352,7 @@ void case_s(int num_of_records, char **ids, char **types, char **dates, char **t
     rewind(output_file);
 }
 
-void case_h(int num_of_records, char **types, float *values) {
+void case_h(int num_of_records, char **types, const float *values) {
     if (num_of_records == 0) {
         printf("Polia nie su vytvorene\n");
         return;
