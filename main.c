@@ -107,8 +107,8 @@ void sort(char ***p_dates_to_show, char ***p_times_to_show, float **p_values_to_
     }
 }
 
-void delete_element(char *id_to_delete, int *p_num_of_records, char ***p_ids, char ***p_positions, char ***p_types,
-                    float **p_values, char ***p_times, char ***p_dates) {
+void delete_elements_from_all_arrays(char *id_to_delete, int *p_num_of_records, char ***p_ids, char ***p_positions, char ***p_types,
+                                     float **p_values, char ***p_times, char ***p_dates) {
     int removedElements = 0;
     for (int i = 0; i < *p_num_of_records; ++i) {
         if ((strcmp(id_to_delete, (*p_ids)[i]) == 0)) {
@@ -461,8 +461,8 @@ void case_z(int *p_num_of_records, char ***p_ids, char ***p_positions, char ***p
     scanf("%s", id_to_delete);
     printf("\n");
 
-    delete_element(id_to_delete, p_num_of_records, p_ids, p_positions, p_types,
-                   p_values, p_times, p_dates);
+    delete_elements_from_all_arrays(id_to_delete, p_num_of_records, p_ids, p_positions, p_types,
+                                    p_values, p_times, p_dates);
 }
 
 int main() {
