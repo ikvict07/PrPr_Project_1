@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 int is_str_equals(const char *s1, const char *s2) {
     while(*s1 && *s2 && (*s1 == *s2))
     {
@@ -120,40 +121,40 @@ void sort(char ***p_dates_to_show, char ***p_times_to_show, float **p_values_to_
 void delete_elements_from_all_arrays(char *id_to_delete, int *p_num_of_records, char ***p_ids, char ***p_positions, char ***p_types,
                                      float **p_values, char ***p_times, char ***p_dates) {
     int removedElements = 0;
+    int newNumRecords = *p_num_of_records;
+
     for (int i = 0; i < *p_num_of_records; ++i) {
-        if ((is_str_equals(id_to_delete, (*p_ids)[i]) == 0)) {
+        if (is_str_equals(id_to_delete, (*p_ids)[i]) == 0) {
             free((*p_ids)[i]);
             free((*p_positions)[i]);
             free((*p_types)[i]);
             free((*p_times)[i]);
             free((*p_dates)[i]);
-            for (int j = i; j < (*p_num_of_records); ++j) {
-                if (i == *p_num_of_records) {
-                    break;
-                }
-                (*p_ids)[j] = (*p_ids)[j + 1];
-                (*p_positions)[j] = (*p_positions)[j + 1];
-                (*p_types)[j] = (*p_types)[j + 1];
-                (*p_values)[j] = (*p_values)[j + 1];
-                (*p_times)[j] = (*p_times)[j + 1];
-                (*p_dates)[j] = (*p_dates)[j + 1];
-            }
-            --i;
-            ++removedElements;
+            removedElements++;
+        } else {
+            (*p_ids)[i - removedElements] = (*p_ids)[i];
+            (*p_positions)[i - removedElements] = (*p_positions)[i];
+            (*p_types)[i - removedElements] = (*p_types)[i];
+            (*p_values)[i - removedElements] = (*p_values)[i];
+            (*p_times)[i - removedElements] = (*p_times)[i];
+            (*p_dates)[i - removedElements] = (*p_dates)[i];
         }
     }
+
     if (removedElements > 0) {
-        *p_num_of_records -= removedElements;
-        *p_ids = realloc(*p_ids, sizeof(char *) * (*p_num_of_records));
-        *p_positions = realloc(*p_positions, sizeof(char *) * (*p_num_of_records));
-        *p_types = realloc(*p_types, sizeof(char *) * (*p_num_of_records));
-        *p_values = realloc(*p_values, sizeof(float) * (*p_num_of_records));
-        *p_times = realloc(*p_times, sizeof(char *) * (*p_num_of_records));
-        *p_dates = realloc(*p_dates, sizeof(char *) * (*p_num_of_records));
+        newNumRecords -= removedElements;
+        *p_num_of_records = newNumRecords;
+
+        *p_ids = realloc(*p_ids, sizeof(char *) * newNumRecords);
+        *p_positions = realloc(*p_positions, sizeof(char *) * newNumRecords);
+        *p_types = realloc(*p_types, sizeof(char *) * newNumRecords);
+        *p_values = realloc(*p_values, sizeof(float) * newNumRecords);
+        *p_times = realloc(*p_times, sizeof(char *) * newNumRecords);
+        *p_dates = realloc(*p_dates, sizeof(char *) * newNumRecords);
     }
+
     printf("Vymazalo sa: %d zaznamov!\n", removedElements);
 }
-
 void case_v(FILE **p_main_file, const int num_of_records, char **ids, char **positions, char **types,
             float *values, char **times, char **dates) {
     if (*p_main_file == NULL) {
